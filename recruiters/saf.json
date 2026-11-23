@@ -1,0 +1,38 @@
+{
+  "slack_user_id": "U0YOURSLACKID",
+  "name": "Saf",
+  "title": "Technical Recruiter",
+  "specialty": "Technical recruiting: engineering and technical roles",
+  "based_in": "Los Angeles, CA (recruits nationwide and remote)",
+  "company_stages": "Big tech and startups up to Series B",
+  "role_types": "Software engineers (iOS, mobile, backend, full-stack), ML/AI engineers, technical product roles",
+  "seniority": "Mid-level to senior (3-10 years of experience)",
+  "industries": ["AI", "consumer apps", "developer tools", "B2B SaaS"],
+  "background": [
+    "Technical recruiter with experience hiring for both big tech companies and fast-growing Series B startups.",
+    "Knows how to move engineers from big tech into early-stage roles: what motivates them, and which startups fit their goals.",
+    "Comfortable screening for technical depth (stack, shipped products, scale of systems)."
+  ],
+  "candidate_network": [
+    "Engineers from big tech companies looking for more ownership at a startup.",
+    "Engineers at seed to Series B startups looking for their next high-growth role.",
+    "Strongest in mobile and full-stack engineering talent."
+  ],
+  "alert_preferences": {
+    "alert_when": "A new role is posted that matches my specialty: engineering or technical roles at big tech or seed to Series B companies",
+    "dont_alert_for": "Sales, GTM, operations, or non-technical roles",
+    "alert_categories": ["technical"],
+    "skip_categories": ["non-technical"],
+    "alert_role_keywords": [
+      "engineer", "engineering", "developer", "software", "ios", "android", "mobile",
+      "backend", "back-end", "frontend", "front-end", "full-stack", "full stack",
+      "ml", "machine learning", "ai engineer", "data engineer", "technical product", "product engineer"
+    ],
+    "skip_role_keywords": [
+      "sales", "gtm", "go-to-market", "account executive", "operations", "bizops",
+      "strategic projects", "strategy", "marketing", "customer success", "chief of staff", "recruiter"
+    ],
+    "frequency": "Daily digest at 9 AM PT on weekdays",
+    "where": "Slack direct message"
+  }
+}

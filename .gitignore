@@ -1,7 +1,21 @@
-.env
-data/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
 venv/
+.pytest_cache/
+
+# Secrets
+.env
+
+# Real role briefs stay local (they can contain INTERNAL notes)
+briefs/*
+!briefs/README.md
+
+# Runtime state
+data/alert_state.json
+data/escalations.json
+data/*.tmp
+
+# OS
 .DS_Store

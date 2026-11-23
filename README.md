@@ -1,139 +1,57 @@
 # Role Brief Copilot: TAC 459 Capstone, Prototype 1
 
-**A Slack bot that answers recruiters' questions about a role right away, using the founder's role brief, so busy founders stop getting the same Slack pings.**
+**A Slack bot that helps Contrario recruiters close more placements.** It sends a daily DM of new roles that match each recruiter's profile, answers role questions straight from the founder's brief, finds real candidates from public profiles, and scores a recruiter's own candidate before they submit.
 
-Built for [Contrario](https://contrario.ai) (YC W25) as part of USC's TAC 459 Generative AI & NLP capstone, Team 6.
+Built for [Contrario](https://contrario.ai) (YC W25) as part of USC's TAC 459 Generative AI capstone. Powered by the **Grok API**, **Slack Bolt** (Socket Mode) and Python.
 
-> Student prototype. Sample data is fictional. Not affiliated with or endorsed by Contrario.
+> Student prototype. Not affiliated with or endorsed by Contrario.
 
 🎥 **Demo video:** [add link]
+📄 **Full documentation:** [ROLE_BRIEF_COPILOT.md](ROLE_BRIEF_COPILOT.md), which covers the flow, every prompt, Slack setup, environment variables and example conversations
 
 ---
 
-## The problem
+## What it does
 
-Recruiters on Contrario keep pinging startup founders with the same questions: *What's the comp? Is it remote? Can you sponsor visas? What's the interview process?* Founders are busy, so recruiters wait hours or days, and good candidates go cold.
+| # | Feature | How |
+|---|---|---|
+| 1 | **Daily role alerts** | Weekdays at 9 AM PT, each recruiter gets a DM with the new roles that match their profile, with **Find candidates** and **Submit my own** buttons |
+| 2 | **Answers role questions** | Answers in 1–3 sentences, only from the founder's brief, and names its source. Never guesses. |
+| 3 | **Keeps secrets** | INTERNAL brief sections are removed before anything reaches the model, and an output guard blocks any reply that repeats an internal number or phrase |
+| 4 | **Escalates to the founder** | If the brief doesn't cover a question, it says so and flags the founder. The founder's reply is added to the knowledge base. |
+| 5 | **Finds candidates** | Searches public LinkedIn and GitHub profiles, then ranks up to 5 against the role scorecard. It never invents a person or a link. |
+| 6 | **Scores your own candidate** | Checks dealbreakers, then scores a resume or LinkedIn profile out of 100: **Good fit (75+) / Possible fit (55–74) / Not a fit** |
+| 7 | **Submits candidates** | At 55+, it asks to submit and records the candidate in the pipeline. The recruiter makes the final call. |
 
-## The solution
+## Quick start
 
-The founder describes the role **once**. After that, recruiters ask the bot in Slack, and it answers right away, **only from the founder's brief**. If the brief doesn't cover a question, the bot says it doesn't know, asks the founder, and adds the founder's answer to the brief. The brief keeps improving, and founders get fewer pings.
-
----
-
-## How it works
-
+```bash
+git clone https://github.com/sadaffsobhanii/TAC459---Prototype-1.git
+cd TAC459---Prototype-1
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # add your Slack and Grok keys
+python -m pytest -q         # 26 tests
+python app.py               # start the bot
 ```
-1. Founder runs /rolebrief  ──►  pastes the job description + intake notes
-2. Grok rewrites them as a clean brief: location, comp, must-haves, dealbreakers, interview process
-                                     (private notes go in a Confidential section)
-3. The brief is split into chunks ──► embedded ──► stored in Chroma (vector DB)
-4. Recruiter @mentions or DMs the bot ──► RAG retrieves the relevant chunks ──► Grok answers ONLY from them
-5. Not in the brief? ──► "I don't know yet" ──► question goes to #founder channel
-                     ──► founder replies in the thread ──► answer goes back to the recruiter AND is added to the brief
-```
 
-### Guardrails
-- **Doesn't make things up:** if the brief doesn't cover something (comp, visas, equity), the bot says it doesn't know instead of guessing.
-- **Keeps secrets:** chunks in the Confidential section are never retrieved for recruiters.
-- **Human in the loop:** the founder answers anything the bot can't.
-
----
-
-## Tech stack
-
-| Part | Tool |
-|---|---|
-| Chat interface | Slack (Bolt for Python, Socket Mode) |
-| LLM | **Grok API (xAI)**, which is OpenAI-compatible |
-| Embeddings + vector DB | **Chroma** with its built-in local embedding model |
-| Language | Python 3.10+ |
-
-**AI concepts used:** embeddings, vector databases, retrieval-augmented generation (RAG), decoder LLMs, prompt engineering.
-
----
+Create the Slack app from `manifest.yml` (see [Slack App Setup](ROLE_BRIEF_COPILOT.md#slack-app-setup)). Role brief PDFs go in `briefs/` and aren't committed, because they contain INTERNAL notes.
 
 ## Repo structure
 
 ```
-├── role_brief_copilot/
-│   ├── bot.py        # Slack app: /rolebrief form, Q&A, founder escalation
-│   ├── brief.py      # Grok turns the JD + notes into a brief; split into chunks
-│   ├── store.py      # Chroma vector DB: add briefs, founder answers, search
-│   ├── answer.py     # RAG: retrieve chunks, then answer only from the brief
-│   ├── llm.py        # Grok API wrapper
-│   └── metrics.py    # Logs every question for the success metrics
-├── evaluate.py       # Offline test: accuracy, safety, speed
-├── sample_data/      # Sample job description, intake notes, test questions
-├── slack_manifest.yml
-├── requirements.txt
-└── .env.example
+app.py              Slack app: events, buttons, slash commands
+copilot/            Core logic (knowledge, matching, scoring, search, pipeline, prompts)
+recruiters/         Recruiter profiles used for role matching
+briefs/             Role briefs (local only)
+data/               Pipeline record
+tests/              26 unit tests: INTERNAL stripping, output guard, scoring, matching
+manifest.yml        One-paste Slack app setup
 ```
-
----
-
-## Setup
-
-**1. Install**
-```bash
-git clone https://github.com/sadaffsobhanii/TAC459---Prototype-1.git
-cd TAC459---Prototype-1
-pip install -r requirements.txt
-cp .env.example .env
-```
-
-**2. Create the Slack app**
-- Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From a manifest**, and paste in `slack_manifest.yml`
-- Install it to your workspace
-- Copy the **Bot Token** (`xoxb-…`) and an **App-Level Token** with `connections:write` (`xapp-…`) into `.env`
-- Create a `#founder` channel, invite the bot, and put that channel's ID in `FOUNDER_CHANNEL_ID`
-
-**3. Add your Grok key**
-Get an API key at [console.x.ai](https://console.x.ai) and put it in `XAI_API_KEY`.
-
-**4. Run**
-```bash
-python -m role_brief_copilot.bot
-```
-
-**5. Try it**
-- Type `/rolebrief` and paste in `sample_data/sample_jd.txt` and `sample_intake_notes.txt`
-- In any channel, ask `@Role Brief Copilot is this role remote?`
-- Ask something the brief doesn't cover (*"Is there a signing bonus?"*), then answer it in `#founder`
-
----
-
-## Success metrics
-
-Run the offline test (no Slack needed):
-```bash
-python evaluate.py
-```
-
-| Metric | What we measure |
-|---|---|
-| **Accuracy** | % of questions answered correctly from the brief |
-| **Speed** | Time to answer vs. waiting on the founder |
-| **Safety** | % of "I don't know" cases handled correctly; confidential info never shared |
-| **Usefulness** | Founder pings saved |
-
-The live bot also logs every question to `data/question_log.csv` (time to answer, answered or escalated).
-
----
 
 ## Professor feedback and next steps
 
-Our professor said this is viable. Next steps:
-
-- [ ] **Candidate repository:** store candidates and recommend the best fits for each role
-- [ ] **History and search:** look up past roles and previously recommended candidates
-- [ ] **Team features:** several founders and recruiters sharing one workspace
-- [ ] **Scale test:** expand to 50–100 synthetic job postings to show it working at scale
-- [ ] ATS sync (Ashby, Lever) so founders never retype a JD
-
----
-
-## Team 6
-
-Sadaf · Yajan · Arsh · Nicolo · Arman · Darsh
-
-*USC TAC 459: Generative AI & NLP, Fall 2026*
+- [ ] Candidate repository, with history and search for past candidates and roles
+- [ ] Team features for several recruiters and founders
+- [ ] Scale test with 50–100 synthetic job postings
+- [ ] A web version of the agent for Contrario's website
